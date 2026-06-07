@@ -1,0 +1,1356 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Control de Traslados · Grupo Tándem</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --beige:    #dfdbcf;
+      --black:    #000000;
+      --orange:   #ed6d1f;
+      --white:    #ffffff;
+      --beige-lt: #f4f2ed;
+      --gray:     #6b6b6b;
+      --gray-lt:  #e8e6e0;
+      --orange-lt:#fdf0e8;
+      --red:      #c0392b;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--beige-lt);
+      color: var(--black);
+      min-height: 100vh;
+      padding-bottom: 80px;
+    }
+
+    /* ── HEADER ── */
+    header {
+      background: var(--black);
+      padding: 18px 40px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 12px rgba(0,0,0,.25);
+    }
+    .logo-dot {
+      width: 36px; height: 36px;
+      background: var(--orange);
+      border-radius: 50%;
+      position: relative;
+      flex-shrink: 0;
+    }
+    .logo-dot::after {
+      content: '';
+      position: absolute;
+      width: 16px; height: 16px;
+      background: var(--black);
+      border-radius: 50%;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    header h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.1rem;
+      color: var(--white);
+      letter-spacing: 0.02em;
+      line-height: 1.2;
+    }
+    header h1 span {
+      display: block;
+      font-size: 0.7rem;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+      color: var(--beige);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .header-nav {
+      margin-left: auto;
+      display: flex;
+      gap: 8px;
+    }
+    .nav-btn {
+      padding: 7px 16px;
+      border: 1px solid rgba(255,255,255,.2);
+      background: transparent;
+      color: var(--beige);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      border-radius: 3px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all .2s;
+    }
+    .nav-btn:hover, .nav-btn.active {
+      background: var(--orange);
+      border-color: var(--orange);
+      color: var(--white);
+    }
+
+    /* ── MAIN LAYOUT ── */
+    .page { display: none; animation: fadeUp .3s ease; }
+    .page.active { display: block; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .container {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 40px 24px 0;
+    }
+
+    /* ── SECTION HEADER ── */
+    .section-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 2rem;
+      line-height: 1.15;
+      margin-bottom: 6px;
+    }
+    .section-sub {
+      font-size: 0.85rem;
+      color: var(--gray);
+      font-weight: 300;
+      margin-bottom: 32px;
+    }
+
+    /* ── CARD ── */
+    .card {
+      background: var(--white);
+      border: 1px solid var(--gray-lt);
+      border-radius: 8px;
+      padding: 28px 32px;
+      margin-bottom: 20px;
+    }
+    .card-title {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--orange);
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--gray-lt);
+    }
+
+    /* ── FORM ELEMENTS ── */
+    .form-grid { display: grid; gap: 16px; }
+    .form-grid-2 { grid-template-columns: 1fr 1fr; }
+
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    label {
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      color: var(--gray);
+      text-transform: uppercase;
+    }
+    label .req { color: var(--orange); margin-left: 2px; }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid var(--gray-lt);
+      border-radius: 5px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      color: var(--black);
+      background: var(--beige-lt);
+      transition: border-color .2s, background .2s;
+      outline: none;
+      appearance: none;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--orange);
+      background: var(--white);
+    }
+    select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b6b6b' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      padding-right: 36px;
+      cursor: pointer;
+    }
+
+    /* ── PRODUCTS TABLE ── */
+    .products-header {
+      display: grid;
+      grid-template-columns: 2fr 1.3fr 85px 105px 95px 95px 34px;
+      gap: 8px;
+      padding: 0 4px 8px;
+      margin-bottom: 4px;
+      border-bottom: 1px solid var(--gray-lt);
+    }
+    .products-header span {
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--gray);
+    }
+    .product-row {
+      display: grid;
+      grid-template-columns: 2fr 1.3fr 85px 105px 95px 95px 34px;
+      gap: 8px;
+      align-items: center;
+      padding: 4px 0;
+      position: relative;
+    }
+    .product-row input, .product-row select {
+      padding: 8px 10px;
+      font-size: 0.85rem;
+    }
+    .product-row .unit-select {
+      padding-right: 28px;
+      font-size: 0.82rem;
+    }
+    .del-btn {
+      width: 32px; height: 32px;
+      background: none;
+      border: 1.5px solid var(--gray-lt);
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--gray);
+      transition: all .2s;
+      font-size: 1rem;
+      line-height: 1;
+    }
+    .del-btn:hover { border-color: var(--red); color: var(--red); }
+    .del-btn:disabled { opacity: .3; cursor: default; }
+
+    #add-product-btn {
+      margin-top: 14px;
+      padding: 9px 18px;
+      background: none;
+      border: 1.5px dashed var(--orange);
+      border-radius: 5px;
+      color: var(--orange);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all .2s;
+      letter-spacing: 0.03em;
+    }
+    #add-product-btn:hover { background: var(--orange-lt); }
+
+    .product-counter {
+      font-size: 0.75rem;
+      color: var(--gray);
+      margin-top: 8px;
+    }
+
+    /* ── SUBMIT ── */
+    .submit-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 10px;
+      margin-top: 8px;
+    }
+    .submit-btn {
+      padding: 13px 36px;
+      background: var(--black);
+      color: var(--white);
+      border: none;
+      border-radius: 5px;
+      font-family: 'DM Serif Display', serif;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all .25s;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      letter-spacing: 0.02em;
+    }
+    .submit-btn:hover { background: var(--orange); transform: translateY(-1px); }
+    .submit-btn:disabled { opacity: .5; cursor: default; transform: none; }
+    .submit-note {
+      font-size: 0.75rem;
+      color: var(--gray);
+    }
+
+    /* ── ALERT ── */
+    .alert {
+      padding: 14px 18px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      margin-bottom: 20px;
+      display: none;
+    }
+    .alert.show { display: block; }
+    .alert-error { background: #fdf0ee; border: 1px solid #e8b4b0; color: #922b21; }
+    .alert-success { background: #edfbf0; border: 1px solid #a9dbb6; color: #1e6b35; }
+
+    /* ── SUCCESS SCREEN ── */
+    #success-screen {
+      text-align: center;
+      padding: 60px 24px;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+    .success-icon {
+      width: 64px; height: 64px;
+      background: var(--black);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 24px;
+      font-size: 1.8rem;
+    }
+    #success-screen h2 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.8rem;
+      margin-bottom: 12px;
+    }
+    #success-screen p { color: var(--gray); font-size: 0.9rem; line-height: 1.6; margin-bottom: 8px; }
+    .new-traslado-btn {
+      margin-top: 28px;
+      padding: 12px 28px;
+      background: var(--orange);
+      color: var(--white);
+      border: none;
+      border-radius: 5px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .new-traslado-btn:hover { background: var(--black); }
+
+    /* ── PANEL LOGIN ── */
+    #panel-login {
+      max-width: 400px;
+      margin: 60px auto 0;
+      padding: 0 24px;
+    }
+    #panel-login .card { text-align: center; }
+    #panel-login .section-title { font-size: 1.5rem; margin-bottom: 4px; }
+    #panel-login .section-sub { margin-bottom: 24px; }
+    #panel-login .field { text-align: left; }
+    .login-btn {
+      width: 100%;
+      margin-top: 8px;
+      padding: 12px;
+      background: var(--black);
+      color: var(--white);
+      border: none;
+      border-radius: 5px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background .2s;
+    }
+    .login-btn:hover { background: var(--orange); }
+
+    /* ── PANEL REPORT ── */
+    .panel-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: flex-end;
+      margin-bottom: 24px;
+    }
+    .panel-toolbar .field { flex: 1; min-width: 140px; }
+    .filter-btn {
+      padding: 10px 20px;
+      background: var(--black);
+      color: var(--white);
+      border: none;
+      border-radius: 5px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: background .2s;
+      white-space: nowrap;
+    }
+    .filter-btn:hover { background: var(--orange); }
+
+    .report-section { margin-bottom: 32px; }
+    .report-section-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.3rem;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--black);
+    }
+
+    .flow-table, .product-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+    }
+    .flow-table th, .product-table th {
+      background: var(--black);
+      color: var(--white);
+      padding: 9px 14px;
+      text-align: left;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+    }
+    .flow-table td, .product-table td {
+      padding: 9px 14px;
+      border-bottom: 1px solid var(--gray-lt);
+    }
+    .flow-table tr:last-child td, .product-table tr:last-child td { border-bottom: none; }
+    .flow-table tr:hover td, .product-table tr:hover td { background: var(--beige-lt); }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }
+    .badge-green { background: #e6f7ec; color: #1a7a38; }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+    .kpi-card {
+      background: var(--white);
+      border: 1px solid var(--gray-lt);
+      border-radius: 8px;
+      padding: 18px 20px;
+    }
+    .kpi-label {
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--gray);
+      margin-bottom: 8px;
+    }
+    .kpi-value {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.8rem;
+      color: var(--black);
+      line-height: 1;
+    }
+    .kpi-value.orange { color: var(--orange); }
+    .kpi-sub {
+      font-size: 0.72rem;
+      color: var(--gray);
+      margin-top: 4px;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: var(--gray);
+      font-size: 0.9rem;
+    }
+    .spinner {
+      display: inline-block;
+      width: 20px; height: 20px;
+      border: 2px solid var(--gray-lt);
+      border-top-color: var(--orange);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      margin-right: 10px;
+      vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .logout-btn {
+      padding: 7px 16px;
+      background: none;
+      border: 1px solid rgba(255,255,255,.2);
+      color: var(--beige);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.75rem;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .logout-btn:hover { border-color: var(--red); color: #ff8a80; }
+
+
+    /* ── SUBTOTAL CELL ── */
+    .subtotal-cell {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--black);
+      text-align: right;
+      padding: 2px 4px;
+      min-width: 85px;
+      line-height: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .subtotal-cell .sub-value {
+      font-size: 0.88rem;
+      color: var(--black);
+    }
+    .subtotal-cell.has-value .sub-value { color: var(--orange); }
+    .subtotal-cell .sub-placeholder {
+      font-size: 0.75rem;
+      color: #bbb;
+      font-weight: 400;
+    }
+
+    /* ── FIELD ERROR STATES ── */
+    input.field-error {
+      border-color: var(--red) !important;
+      background: #fff5f5 !important;
+    }
+    input.field-ok {
+      border-color: #4caf80 !important;
+    }
+    .field-hint {
+      font-size: 0.7rem;
+      margin-top: 3px;
+      display: none;
+      padding: 0 2px;
+    }
+    .field-hint.error { color: var(--red); display: block; }
+    .field-hint.ok    { color: #2e7d52; display: block; }
+
+    /* ── GRAND TOTAL BAR ── */
+    .grand-total-bar {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 14px;
+      margin-top: 14px;
+      padding: 12px 16px;
+      background: var(--black);
+      border-radius: 6px;
+      color: var(--white);
+    }
+    .grand-total-label {
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--beige);
+    }
+    .grand-total-value {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.4rem;
+      color: var(--orange);
+      min-width: 110px;
+      text-align: right;
+    }
+
+
+    /* ── HONEYPOT (anti-bot, visually hidden but not display:none) ── */
+    .hp-field {
+      position: absolute;
+      left: -9999px;
+      top: -9999px;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      opacity: 0;
+      pointer-events: none;
+      tab-index: -1;
+    }
+
+    /* ── TIMING SHIELD ── */
+    /* submit btn starts disabled, enabled after MIN_HUMAN_TIME ms */
+
+    /* ── MATH CHALLENGE ── */
+    .challenge-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      background: var(--beige-lt);
+      border: 1.5px solid var(--gray-lt);
+      border-radius: 6px;
+      margin-top: 4px;
+    }
+    .challenge-question {
+      font-size: 0.95rem;
+      font-weight: 600;
+      white-space: nowrap;
+      color: var(--black);
+    }
+    .challenge-input {
+      width: 70px !important;
+      text-align: center;
+      font-weight: 600;
+      font-size: 1rem !important;
+    }
+    .challenge-status {
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+    .challenge-status.ok  { color: #2e7d52; }
+    .challenge-status.err { color: var(--red); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 600px) {
+      header { padding: 14px 16px; }
+      .container { padding: 24px 14px 0; }
+      .card { padding: 20px 16px; }
+      .form-grid-2 { grid-template-columns: 1fr; }
+      .products-header,
+      .product-row {
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+      }
+      .products-header,
+      .product-row { font-size: 0.75rem; }
+    }
+
+    /* Separator line */
+    .sep {
+      height: 1px;
+      background: var(--gray-lt);
+      margin: 8px 0 20px;
+    }
+
+    .text-right { text-align: right; }
+    .fw-bold { font-weight: 600; }
+    .text-orange { color: var(--orange); }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════ HEADER ══════════════ -->
+<header>
+  <div class="logo-dot"></div>
+  <h1>Traslados<span>Grupo Tándem Gastronómico</span></h1>
+  <nav class="header-nav">
+    <a class="nav-btn active" id="btn-form" href="#" onclick="showPage('form');return false;">Nuevo Traslado</a>
+    <a class="nav-btn" id="btn-panel" href="#" onclick="showPage('panel');return false;">Panel Operaciones</a>
+  </nav>
+</header>
+
+<!-- ══════════════ PAGE: FORM ══════════════ -->
+<div id="page-form" class="page active">
+  <div class="container">
+    <h2 class="section-title">Nuevo Traslado</h2>
+    <p class="section-sub">Completá todos los campos. Se enviará un PDF de confirmación a las dos partes.</p>
+
+    <div class="alert alert-error" id="form-error"></div>
+    <div class="alert alert-success" id="form-success"></div>
+
+    <div id="form-wrapper">
+      <!-- Card 1: Datos del traslado -->
+      <div class="card">
+        <div class="card-title">01 · Datos del traslado</div>
+        <div class="form-grid form-grid-2">
+          <div class="field">
+            <label>Local de origen <span class="req">*</span></label>
+            <select id="local-origen" required>
+              <option value="">— Seleccioná —</option>
+              <option>Bar Maipi</option>
+              <option>Doña Petrona</option>
+              <option>La Oficina de Carito y Germán</option>
+              <option>Fierro Restaurante</option>
+              <option>Holding</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Local de destino <span class="req">*</span></label>
+            <select id="local-destino" required>
+              <option value="">— Seleccioná —</option>
+              <option>Bar Maipi</option>
+              <option>Doña Petrona</option>
+              <option>La Oficina de Carito y Germán</option>
+              <option>Fierro Restaurante</option>
+              <option>Holding</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 2: Datos del responsable -->
+      <div class="card">
+        <div class="card-title">02 · Responsable del traslado</div>
+        <div class="form-grid form-grid-2">
+          <div class="field">
+            <label>Nombre completo <span class="req">*</span></label>
+            <input type="text" id="nombre" placeholder="Tu nombre y apellido" required />
+          </div>
+          <div class="field">
+            <label>Email <span class="req">*</span></label>
+            <input type="email" id="email" placeholder="tu@email.com" required />
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 3: Productos -->
+      <div class="card">
+        <div class="card-title">03 · Productos a trasladar</div>
+
+        <div class="products-header">
+          <span>Producto</span>
+          <span>Proveedor</span>
+          <span>Cantidad</span>
+          <span>UME</span>
+          <span>Precio/u (€)</span>
+          <span>Subtotal</span>
+          <span></span>
+        </div>
+
+        <div id="products-list"></div>
+
+        <div class="grand-total-bar" id="grand-total-bar">
+          <span class="grand-total-label">Total traslado</span>
+          <span class="grand-total-value" id="grand-total-value">€ 0,00</span>
+        </div>
+
+        <button type="button" id="add-product-btn" onclick="addProductRow()">+ Agregar producto</button>
+        <p class="product-counter" id="product-counter">1 producto</p>
+      </div>
+
+      <!-- Honeypot (oculto para humanos, visible para bots) -->
+      <div class="hp-field" aria-hidden="true">
+        <label for="hp-website">Website</label>
+        <input type="text" id="hp-website" name="website" tabindex="-1" autocomplete="off" />
+      </div>
+
+      <!-- Math challenge -->
+      <div class="card" style="padding:16px 24px;">
+        <div class="card-title" style="margin-bottom:12px;">04 · Verificación</div>
+        <p style="font-size:0.82rem;color:var(--gray);margin-bottom:12px;">Respondé esta operación simple para confirmar que sos una persona.</p>
+        <div class="challenge-wrap">
+          <span class="challenge-question" id="challenge-question">— + — = ?</span>
+          <input type="number" class="challenge-input" id="challenge-answer" placeholder="?" autocomplete="off"
+            oninput="checkChallenge()" />
+          <span class="challenge-status" id="challenge-status"></span>
+        </div>
+      </div>
+
+      <!-- Submit -->
+      <div class="submit-wrap">
+        <p class="submit-note">El PDF se enviará automáticamente al emisor y al receptor.</p>
+        <button class="submit-btn" id="submit-btn" onclick="submitForm()" disabled>
+          <span id="submit-label">Registrar traslado</span>
+          <span id="submit-spinner" class="spinner" style="display:none;"></span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Success screen -->
+    <div id="success-screen" style="display:none;">
+      <div class="success-icon">✓</div>
+      <h2>¡Traslado registrado!</h2>
+      <p>El PDF de confirmación fue enviado al <strong id="s-emisor"></strong> y al <strong id="s-receptor"></strong>.</p>
+      <p>El registro quedó asentado en el sistema.</p>
+      <button class="new-traslado-btn" onclick="resetForm()">Registrar otro traslado</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ PAGE: PANEL ══════════════ -->
+<div id="page-panel" class="page">
+  <!-- LOGIN -->
+  <div id="panel-login">
+    <div class="section-title" style="text-align:center;font-size:1.6rem;margin-bottom:4px;">Panel de Operaciones</div>
+    <p class="section-sub" style="text-align:center;">Acceso restringido</p>
+    <div class="card">
+      <div class="form-grid" style="gap:14px;">
+        <div class="field">
+          <label>Email</label>
+          <input type="email" id="login-email" placeholder="operaciones@tandem.com" />
+        </div>
+        <div class="field">
+          <label>Contraseña</label>
+          <input type="password" id="login-pwd" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()" />
+        </div>
+        <div class="alert alert-error" id="login-error" style="margin:0;"></div>
+        <button class="login-btn" onclick="doLogin()">Ingresar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="panel-dashboard" style="display:none;">
+    <div class="container" style="max-width:1000px;">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:6px;">
+        <h2 class="section-title">Panel de Operaciones</h2>
+        <button class="logout-btn" onclick="doLogout()">Cerrar sesión</button>
+      </div>
+      <p class="section-sub">Resumen de traslados entre locales</p>
+
+      <!-- Filters -->
+      <div class="card" style="padding:20px 24px;">
+        <div class="panel-toolbar">
+          <div class="field">
+            <label>Desde</label>
+            <input type="date" id="filter-from" />
+          </div>
+          <div class="field">
+            <label>Hasta</label>
+            <input type="date" id="filter-to" />
+          </div>
+          <div class="field">
+            <label>Local</label>
+            <select id="filter-local">
+              <option value="">Todos los locales</option>
+              <option>Bar Maipi</option>
+              <option>Doña Petrona</option>
+              <option>La Oficina de Carito y Germán</option>
+              <option>Fierro Restaurante</option>
+              <option>Holding</option>
+            </select>
+          </div>
+          <button class="filter-btn" onclick="loadReport()">Aplicar filtros</button>
+        </div>
+      </div>
+
+      <div id="report-content">
+        <div class="loading"><span class="spinner"></span>Cargando datos…</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ SCRIPTS ══════════════ -->
+<script>
+// ── CONFIG ──────────────────────────────────────────────────────
+const API_URL = 'https://script.google.com/macros/s/AKfycbx3R2njygbo3bm4ENcqlYucfhq07AjXRu1HShj_kiMa2qlcwg_gVHmx7Hu93zQztdE8/exec';
+
+const LOCAL_EMAILS = {
+  'Bar Maipi':                    'maipi@grupotandem.com',
+  'Doña Petrona':                 'petrona@grupotandem.com',
+  'La Oficina de Carito y Germán':'oficina@grupotandem.com',
+  'Fierro Restaurante':           'fierro@grupotandem.com',
+  'Holding':                      'holding@grupotandem.com',
+};
+
+// ── PAGE NAVIGATION ─────────────────────────────────────────────
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  document.getElementById('btn-' + id).classList.add('active');
+}
+
+// ── PRODUCT ROWS ─────────────────────────────────────────────────
+let productCount = 0;
+const UNITS = ['Unidades', 'Kg', 'Gramos', 'Litros', 'Ml', 'Cajas', 'Bandejas', 'Porciones'];
+
+function addProductRow() {
+  productCount++;
+  const idx = productCount;
+  const row = document.createElement('div');
+  row.className = 'product-row';
+  row.id = 'prod-row-' + idx;
+  row.innerHTML = `
+    <div style="display:flex;flex-direction:column;">
+      <input type="text" placeholder="Nombre del producto" id="p-nombre-${idx}" required
+        oninput="validateNombre(${idx})" onblur="validateNombre(${idx})" />
+      <span class="field-hint" id="hint-nombre-${idx}"></span>
+    </div>
+    <input type="text" placeholder="Proveedor" id="p-proveedor-${idx}" />
+    <div style="display:flex;flex-direction:column;">
+      <input type="number" placeholder="0" min="0.001" step="any" id="p-cantidad-${idx}" required
+        oninput="recalcRow(${idx})" onblur="validateCantidad(${idx})" />
+      <span class="field-hint" id="hint-cantidad-${idx}"></span>
+    </div>
+    <select id="p-unidad-${idx}" class="unit-select">
+      ${UNITS.map(u => `<option>${u}</option>`).join('')}
+    </select>
+    <div style="display:flex;flex-direction:column;">
+      <input type="number" placeholder="0,00" min="0" step="0.01" id="p-precio-${idx}" required
+        oninput="recalcRow(${idx})" onblur="validatePrecio(${idx})" />
+      <span class="field-hint" id="hint-precio-${idx}"></span>
+    </div>
+    <div class="subtotal-cell" id="p-subtotal-${idx}">
+      <span class="sub-placeholder">—</span>
+    </div>
+    <button class="del-btn" onclick="removeProductRow(${idx})" title="Eliminar">✕</button>
+  `;
+  document.getElementById('products-list').appendChild(row);
+  updateProductUI();
+}
+
+function removeProductRow(idx) {
+  if (productCount <= 1) return;
+  document.getElementById('prod-row-' + idx).remove();
+  productCount--;
+  updateProductUI();
+}
+
+function updateProductUI() {
+  document.getElementById('product-counter').textContent = `${productCount} producto${productCount !== 1 ? 's' : ''}`;
+  const rows = document.querySelectorAll('.product-row');
+  rows.forEach(r => {
+    const delBtn = r.querySelector('.del-btn');
+    if (delBtn) delBtn.disabled = rows.length === 1;
+  });
+  updateGrandTotal();
+}
+
+function recalcRow(idx) {
+  const qty = parseFloat(document.getElementById('p-cantidad-' + idx)?.value) || 0;
+  const prc = parseFloat(document.getElementById('p-precio-'  + idx)?.value) || 0;
+  const cell = document.getElementById('p-subtotal-' + idx);
+  if (!cell) return;
+  if (qty > 0 && prc >= 0) {
+    const sub = qty * prc;
+    cell.innerHTML = `<span class="sub-value">€ ${sub.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</span>`;
+    cell.classList.add('has-value');
+  } else {
+    cell.innerHTML = `<span class="sub-placeholder">—</span>`;
+    cell.classList.remove('has-value');
+  }
+  updateGrandTotal();
+}
+
+function updateGrandTotal() {
+  let total = 0;
+  document.querySelectorAll('.product-row').forEach(row => {
+    const idx = row.id.replace('prod-row-', '');
+    const qty = parseFloat(document.getElementById('p-cantidad-' + idx)?.value) || 0;
+    const prc = parseFloat(document.getElementById('p-precio-'  + idx)?.value) || 0;
+    total += qty * prc;
+  });
+  const el = document.getElementById('grand-total-value');
+  if (el) el.textContent = '€ ' + total.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+
+// ── FIELD VALIDATORS ──
+function validateNombre(idx) {
+  const input = document.getElementById('p-nombre-' + idx);
+  const hint  = document.getElementById('hint-nombre-' + idx);
+  if (!input || !hint) return;
+  const val = input.value.trim();
+  if (!val) {
+    input.classList.add('field-error'); input.classList.remove('field-ok');
+    hint.textContent = 'Ingresá el nombre del producto'; hint.className = 'field-hint error';
+    return false;
+  }
+  input.classList.remove('field-error'); input.classList.add('field-ok');
+  hint.className = 'field-hint';
+  return true;
+}
+
+function validateCantidad(idx) {
+  const input = document.getElementById('p-cantidad-' + idx);
+  const hint  = document.getElementById('hint-cantidad-' + idx);
+  if (!input || !hint) return;
+  const val = parseFloat(input.value);
+  if (!input.value || isNaN(val) || val <= 0) {
+    input.classList.add('field-error'); input.classList.remove('field-ok');
+    hint.textContent = val < 0 ? 'La cantidad no puede ser negativa' : 'Ingresá una cantidad mayor a 0';
+    hint.className = 'field-hint error';
+    return false;
+  }
+  input.classList.remove('field-error'); input.classList.add('field-ok');
+  hint.className = 'field-hint';
+  return true;
+}
+
+function validatePrecio(idx) {
+  const input = document.getElementById('p-precio-' + idx);
+  const hint  = document.getElementById('hint-precio-' + idx);
+  if (!input || !hint) return;
+  const val = parseFloat(input.value);
+  if (input.value === '' || isNaN(val) || val < 0) {
+    input.classList.add('field-error'); input.classList.remove('field-ok');
+    hint.textContent = val < 0 ? 'El precio no puede ser negativo' : 'Ingresá el precio unitario';
+    hint.className = 'field-hint error';
+    return false;
+  }
+  input.classList.remove('field-error'); input.classList.add('field-ok');
+  hint.className = 'field-hint';
+  return true;
+}
+
+// ── ANTI-BOT LAYER ───────────────────────────────────────────────
+const MIN_HUMAN_MS  = 4000;   // mínimo tiempo humano razonable para llenar el form
+const MAX_SUBMITS   = 5;      // máximo envíos por sesión
+const SUBMIT_WINDOW = 10 * 60 * 1000; // ventana de 10 min para el rate limit
+
+let formLoadTime    = Date.now();
+let challengeA      = 0;
+let challengeB      = 0;
+let challengeSolved = false;
+let sessionSubmits  = JSON.parse(sessionStorage.getItem('tnd_submits') || '[]');
+
+// Generate math challenge on load
+function initChallenge() {
+  challengeA = Math.floor(Math.random() * 12) + 2;
+  challengeB = Math.floor(Math.random() * 12) + 2;
+  document.getElementById('challenge-question').textContent =
+    `${challengeA} + ${challengeB} = ?`;
+  document.getElementById('challenge-answer').value = '';
+  document.getElementById('challenge-status').textContent = '';
+  document.getElementById('challenge-status').className = 'challenge-status';
+  challengeSolved = false;
+  updateSubmitBtn();
+}
+
+function checkChallenge() {
+  const ans = parseInt(document.getElementById('challenge-answer').value, 10);
+  const st  = document.getElementById('challenge-status');
+  if (isNaN(ans)) {
+    challengeSolved = false;
+    st.textContent = '';
+    st.className = 'challenge-status';
+  } else if (ans === challengeA + challengeB) {
+    challengeSolved = true;
+    st.textContent = '✓ Correcto';
+    st.className = 'challenge-status ok';
+  } else {
+    challengeSolved = false;
+    st.textContent = '✗ Incorrecto';
+    st.className = 'challenge-status err';
+  }
+  updateSubmitBtn();
+}
+
+function updateSubmitBtn() {
+  // Enabled only when challenge is solved (timing check happens on submit)
+  document.getElementById('submit-btn').disabled = !challengeSolved;
+}
+
+function checkRateLimit() {
+  const now = Date.now();
+  // Purge old entries outside the window
+  sessionSubmits = sessionSubmits.filter(t => now - t < SUBMIT_WINDOW);
+  if (sessionSubmits.length >= MAX_SUBMITS) return false;
+  return true;
+}
+
+function recordSubmit() {
+  sessionSubmits.push(Date.now());
+  sessionStorage.setItem('tnd_submits', JSON.stringify(sessionSubmits));
+}
+
+// ── FORM SUBMIT ──────────────────────────────────────────────────
+async function submitForm() {
+  clearAlerts();
+
+  // ── Anti-bot checks ──
+  // 1. Honeypot: si el campo oculto tiene valor, es un bot
+  if (document.getElementById('hp-website').value !== '') return;
+
+  // 2. Timing: si llenó el form en menos de MIN_HUMAN_MS, sospechoso
+  if (Date.now() - formLoadTime < MIN_HUMAN_MS) {
+    showError('Por favor revisá el formulario antes de enviarlo.');
+    return;
+  }
+
+  // 3. Math challenge
+  if (!challengeSolved) {
+    showError('Completá la verificación antes de continuar.');
+    document.getElementById('challenge-answer').focus();
+    return;
+  }
+
+  // 4. Rate limit de sesión
+  if (!checkRateLimit()) {
+    showError('Demasiados envíos en poco tiempo. Esperá unos minutos e intentá nuevamente.');
+    return;
+  }
+
+  const origen  = document.getElementById('local-origen').value;
+  const destino = document.getElementById('local-destino').value;
+  const nombre  = document.getElementById('nombre').value.trim();
+  const email   = document.getElementById('email').value.trim();
+
+  if (!origen || !destino) return showError('Seleccioná los locales de origen y destino.');
+  if (origen === destino) return showError('El local de origen y destino no pueden ser el mismo.');
+  if (!nombre) return showError('Ingresá tu nombre completo.');
+  if (!email || !email.includes('@')) return showError('Ingresá un email válido.');
+
+  // Collect & validate products
+  const products = [];
+  const rows = document.querySelectorAll('.product-row');
+  if (rows.length === 0) return showError('Agregá al menos un producto.');
+
+  let hasErrors = false;
+  for (const row of rows) {
+    const id = row.id.replace('prod-row-', '');
+    const okNom = validateNombre(id);
+    const okQty = validateCantidad(id);
+    const okPrc = validatePrecio(id);
+    if (!okNom || !okQty || !okPrc) { hasErrors = true; continue; }
+
+    const qty = parseFloat(document.getElementById('p-cantidad-' + id).value);
+    const prc = parseFloat(document.getElementById('p-precio-'   + id).value);
+
+    products.push({
+      nombre:    document.getElementById('p-nombre-'   + id).value.trim(),
+      proveedor: document.getElementById('p-proveedor-'+ id).value.trim() || '-',
+      cantidad:  qty,
+      unidad:    document.getElementById('p-unidad-'   + id).value,
+      precio:    prc,
+      subtotal:  +(qty * prc).toFixed(2),
+    });
+  }
+
+  if (hasErrors) {
+    showError('Revisá los campos marcados en rojo antes de continuar.');
+    // Scroll to first error
+    const firstErr = document.querySelector('input.field-error');
+    if (firstErr) firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
+
+  const payload = {
+    action: 'registrarTraslado',
+    _t: Date.now() - formLoadTime,  // timing token (ms spent on form)
+    origen, destino, nombre, email,
+    emailDestino: LOCAL_EMAILS[destino] || '',
+    productos: products,
+    fecha: new Date().toLocaleDateString('es-AR', { day:'2-digit', month:'2-digit', year:'numeric' }),
+  };
+
+  setLoading(true);
+  try {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (data.status === 'ok') {
+      recordSubmit();
+      document.getElementById('form-wrapper').style.display = 'none';
+      const ss = document.getElementById('success-screen');
+      ss.style.display = 'block';
+      document.getElementById('s-emisor').textContent = origen;
+      document.getElementById('s-receptor').textContent = destino;
+    } else {
+      showError('Error al registrar: ' + (data.message || 'intenta nuevamente.'));
+    }
+  } catch(e) {
+    showError('No se pudo conectar con el servidor. Verificá la URL del API.');
+  }
+  setLoading(false);
+}
+
+function resetForm() {
+  document.getElementById('form-wrapper').style.display = 'block';
+  document.getElementById('success-screen').style.display = 'none';
+  document.getElementById('local-origen').value = '';
+  document.getElementById('local-destino').value = '';
+  document.getElementById('nombre').value = '';
+  document.getElementById('email').value = '';
+  document.getElementById('products-list').innerHTML = '';
+  productCount = 0;
+  addProductRow();
+  clearAlerts();
+  formLoadTime = Date.now();  // reset timing
+  initChallenge();            // new math challenge
+}
+
+function showError(msg) {
+  const el = document.getElementById('form-error');
+  el.textContent = msg;
+  el.classList.add('show');
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+function clearAlerts() {
+  document.getElementById('form-error').classList.remove('show');
+  document.getElementById('form-success').classList.remove('show');
+}
+function setLoading(on) {
+  document.getElementById('submit-btn').disabled = on;
+  document.getElementById('submit-label').textContent = on ? 'Registrando…' : 'Registrar traslado';
+  document.getElementById('submit-spinner').style.display = on ? 'inline-block' : 'none';
+}
+
+// ── PANEL AUTH ────────────────────────────────────────────────────
+let panelSession = false;
+
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pwd   = document.getElementById('login-pwd').value;
+  const errEl = document.getElementById('login-error');
+  errEl.classList.remove('show');
+
+  if (!email || !pwd) { errEl.textContent = 'Completá email y contraseña.'; errEl.classList.add('show'); return; }
+
+  try {
+    const res = await fetch(API_URL + '?action=login&email=' + encodeURIComponent(email) + '&pwd=' + encodeURIComponent(pwd));
+    const data = await res.json();
+    if (data.status === 'ok') {
+      panelSession = true;
+      document.getElementById('panel-login').style.display = 'none';
+      document.getElementById('panel-dashboard').style.display = 'block';
+      setDefaultDates();
+      loadReport();
+    } else {
+      errEl.textContent = data.message || 'Credenciales incorrectas.';
+      errEl.classList.add('show');
+    }
+  } catch(e) {
+    errEl.textContent = 'No se pudo conectar con el servidor.';
+    errEl.classList.add('show');
+  }
+}
+
+function doLogout() {
+  panelSession = false;
+  document.getElementById('panel-login').style.display = 'block';
+  document.getElementById('panel-dashboard').style.display = 'none';
+  document.getElementById('login-pwd').value = '';
+}
+
+function setDefaultDates() {
+  const now = new Date();
+  const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  document.getElementById('filter-from').value = firstOfMonth.toISOString().split('T')[0];
+  document.getElementById('filter-to').value   = now.toISOString().split('T')[0];
+}
+
+// ── PANEL REPORT ─────────────────────────────────────────────────
+async function loadReport() {
+  const from  = document.getElementById('filter-from').value;
+  const to    = document.getElementById('filter-to').value;
+  const local = document.getElementById('filter-local').value;
+
+  const content = document.getElementById('report-content');
+  content.innerHTML = '<div class="loading"><span class="spinner"></span>Cargando datos…</div>';
+
+  try {
+    const url = `${API_URL}?action=getReport&from=${from}&to=${to}&local=${encodeURIComponent(local)}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    if (data.status === 'ok') {
+      renderReport(data);
+    } else {
+      content.innerHTML = '<div class="loading">Error al cargar el reporte.</div>';
+    }
+  } catch(e) {
+    content.innerHTML = '<div class="loading">No se pudo conectar con el servidor.</div>';
+  }
+}
+
+function renderReport(data) {
+  const { traslados = [], kpis = {}, flujos = [], productos = [] } = data;
+  const content = document.getElementById('report-content');
+
+  // ── KPI cards ──
+  const totalValor = productos.reduce((s, p) => s + (p.valorTotal || 0), 0);
+  const kpiHtml = `
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">Traslados totales</div>
+        <div class="kpi-value">${traslados.length}</div>
+        <div class="kpi-sub">en el período</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Productos trasladados</div>
+        <div class="kpi-value">${productos.reduce((s,p)=>s+(p.cantidad||0),0)}</div>
+        <div class="kpi-sub">unidades totales</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Valor total trasladado</div>
+        <div class="kpi-value orange">€ ${totalValor.toFixed(2)}</div>
+        <div class="kpi-sub">costo de compra</div>
+      </div>
+    </div>`;
+
+  // ── Flujos entre locales ──
+  const flujoRows = flujos.map(f => `
+    <tr>
+      <td>${f.origen}</td>
+      <td>${f.destino}</td>
+      <td>${f.cantidad}</td>
+      <td class="text-right fw-bold text-orange">€ ${Number(f.valor).toFixed(2)}</td>
+    </tr>`).join('') || '<tr><td colspan="4" style="text-align:center;color:var(--gray);padding:20px;">Sin traslados en el período</td></tr>';
+
+  const flujoHtml = `
+    <div class="report-section">
+      <div class="report-section-title">Flujos entre locales</div>
+      <div class="card" style="padding:0;overflow:hidden;">
+        <table class="flow-table">
+          <thead><tr><th>Origen</th><th>Destino</th><th>Nº traslados</th><th>Valor total</th></tr></thead>
+          <tbody>${flujoRows}</tbody>
+        </table>
+      </div>
+    </div>`;
+
+  // ── Listado valorado por local ──
+  const locales = [...new Set(productos.map(p => p.local))];
+  let productoHtml = '<div class="report-section"><div class="report-section-title">Listado valorado por local</div>';
+  if (locales.length === 0) {
+    productoHtml += '<p style="color:var(--gray);font-size:0.85rem;">Sin datos para mostrar.</p>';
+  } else {
+    for (const local of locales) {
+      const lProds = productos.filter(p => p.local === local);
+      const lTotal = lProds.reduce((s, p) => s + (p.valorTotal || 0), 0);
+      const rows = lProds.map(p => `
+        <tr>
+          <td>${p.nombre}</td>
+          <td>${p.proveedor || '-'}</td>
+          <td>${p.cantidad} ${p.unidad}</td>
+          <td class="text-right">€ ${Number(p.precioUnitario).toFixed(2)}</td>
+          <td class="text-right fw-bold">€ ${Number(p.valorTotal).toFixed(2)}</td>
+        </tr>`).join('');
+      productoHtml += `
+        <div style="margin-bottom:20px;">
+          <div style="font-size:0.8rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--orange);margin-bottom:10px;">${local}</div>
+          <div class="card" style="padding:0;overflow:hidden;">
+            <table class="product-table">
+              <thead><tr><th>Producto</th><th>Proveedor</th><th>Cantidad</th><th>Precio/u</th><th>Total</th></tr></thead>
+              <tbody>${rows}</tbody>
+              <tfoot>
+                <tr style="background:var(--beige-lt);">
+                  <td colspan="4" style="font-weight:600;padding:10px 14px;">Total ${local}</td>
+                  <td class="text-right fw-bold text-orange" style="padding:10px 14px;">€ ${lTotal.toFixed(2)}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>`;
+    }
+  }
+  productoHtml += '</div>';
+
+  // ── Historial traslados ──
+  const histRows = traslados.map(t => `
+    <tr>
+      <td>${t.fecha}</td>
+      <td>${t.origen}</td>
+      <td>${t.destino}</td>
+      <td>${t.nombre}</td>
+      <td>${t.nProductos}</td>
+      <td class="text-right fw-bold">€ ${Number(t.valorTotal).toFixed(2)}</td>
+    </tr>`).join('') || '<tr><td colspan="6" style="text-align:center;color:var(--gray);padding:20px;">Sin traslados</td></tr>';
+
+  const histHtml = `
+    <div class="report-section">
+      <div class="report-section-title">Historial de traslados</div>
+      <div class="card" style="padding:0;overflow:hidden;">
+        <table class="flow-table">
+          <thead><tr><th>Fecha</th><th>Origen</th><th>Destino</th><th>Responsable</th><th>Productos</th><th>Valor</th></tr></thead>
+          <tbody>${histRows}</tbody>
+        </table>
+      </div>
+    </div>`;
+
+  content.innerHTML = kpiHtml + flujoHtml + productoHtml + histHtml;
+}
+
+// ── INIT ─────────────────────────────────────────────────────────
+addProductRow();
+initChallenge();
+</script>
+</body>
+</html>
