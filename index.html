@@ -828,14 +828,14 @@
 <!-- ══════════════ SCRIPTS ══════════════ -->
 <script>
 // ── CONFIG ──────────────────────────────────────────────────────
-const API_URL = 'https://script.google.com/macros/s/AKfycbxO4XHOrnjVNSu8EvNq7PL82ytGnEOkcwjj6VaB8xcq6Jre-LmPhVANsVvKlN96nO5u/exec';
+const API_URL = 'PEGAR_URL_APPS_SCRIPT_AQUI';
 
 const LOCAL_EMAILS = {
-  'Bar Maipi':                    'op.tandemg@gmail.com',
-  'Doña Petrona':                 'arieldelacuesta@gmail.com',
-  'La Oficina de Carito y Germán':'',
-  'Fierro Restaurante':           '',
-  'Holding':                      '',
+  'Bar Maipi':                    'maipi@grupotandem.com',
+  'Doña Petrona':                 'petrona@grupotandem.com',
+  'La Oficina de Carito y Germán':'oficina@grupotandem.com',
+  'Fierro Restaurante':           'fierro@grupotandem.com',
+  'Holding':                      'holding@grupotandem.com',
 };
 
 // ── PAGE NAVIGATION ─────────────────────────────────────────────
@@ -1121,10 +1121,12 @@ async function submitForm() {
 
   setLoading(true);
   try {
+    // Use text/plain to avoid CORS preflight — Apps Script accepts this
     const res = await fetch(API_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify(payload),
+      redirect: 'follow',
     });
     const data = await res.json();
     if (data.status === 'ok') {
@@ -1186,7 +1188,7 @@ async function doLogin() {
   if (!email || !pwd) { errEl.textContent = 'Completá email y contraseña.'; errEl.classList.add('show'); return; }
 
   try {
-    const res = await fetch(API_URL + '?action=login&email=' + encodeURIComponent(email) + '&pwd=' + encodeURIComponent(pwd));
+    const res = await fetch(API_URL + '?action=login&email=' + encodeURIComponent(email) + '&pwd=' + encodeURIComponent(pwd), { redirect: 'follow' });
     const data = await res.json();
     if (data.status === 'ok') {
       panelSession = true;
@@ -1229,7 +1231,7 @@ async function loadReport() {
 
   try {
     const url = `${API_URL}?action=getReport&from=${from}&to=${to}&local=${encodeURIComponent(local)}`;
-    const res = await fetch(url);
+    const res = await fetch(url, { redirect: 'follow' });
     const data = await res.json();
     if (data.status === 'ok') {
       renderReport(data);
