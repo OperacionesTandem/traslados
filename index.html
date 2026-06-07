@@ -1324,33 +1324,49 @@ function renderReport(data) {
     </div>`;
 
   // ── Listado valorado por local ──
-  const locales = [...new Set(productos.map(p => p.local))];
-  let productoHtml = '<div class="report-section"><div class="report-section-title">Listado valorado por local</div>';
-  if (locales.length === 0) {
-    productoHtml += '<p style="color:var(--gray);font-size:0.85rem;">Sin datos para mostrar.</p>';
+  // filtroLocal: si hay local seleccionado, backend devuelve productos agrupados por destino
+  const filtroLocal = data.filtroLocal || '';
+  const secTit = filtroLocal
+    ? `Productos enviados por ${filtroLocal} — por destino`
+    : 'Listado valorado por local emisor';
+
+  const groupKeys = [...new Set(productos.map(p => p.groupKey))].sort();
+  let productoHtml = `<div class="report-section"><div class="report-section-title">${secTit}</div>`;
+
+  if (groupKeys.length === 0) {
+    productoHtml += '<p style="color:var(--gray);font-size:0.85rem;">Sin datos para mostrar en el período seleccionado.</p>';
   } else {
-    for (const local of locales) {
-      const lProds = productos.filter(p => p.local === local);
-      const lTotal = lProds.reduce((s, p) => s + (p.valorTotal || 0), 0);
-      const rows = lProds.map(p => `
+    for (const gKey of groupKeys) {
+      const gProds = productos.filter(p => p.groupKey === gKey);
+      const gTotal = gProds.reduce((s, p) => s + (p.valorTotal || 0), 0);
+      const isDestino = !!filtroLocal;
+
+      const groupLabel = isDestino
+        ? `<span style="color:var(--gray);font-weight:400;font-size:0.72rem;margin-right:6px;text-transform:none;letter-spacing:0;">→ enviado a</span>${gKey}`
+        : gKey;
+
+      const rows = gProds.map(p => `
         <tr>
           <td>${p.nombre}</td>
           <td>${p.proveedor || '-'}</td>
-          <td>${p.cantidad} ${p.unidad}</td>
-          <td class="text-right">€ ${Number(p.precioUnitario).toFixed(2)}</td>
+          <td class="text-right">${p.cantidad} ${p.unidad}</td>
+          <td class="text-right">€ ${Number(p.precioUnitario || 0).toFixed(2)}</td>
           <td class="text-right fw-bold">€ ${Number(p.valorTotal).toFixed(2)}</td>
         </tr>`).join('');
+
+      const footLabel = isDestino ? `Total enviado a ${gKey}` : `Total ${gKey}`;
+
       productoHtml += `
         <div style="margin-bottom:20px;">
-          <div style="font-size:0.8rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--orange);margin-bottom:10px;">${local}</div>
+          <div style="font-size:0.8rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--orange);margin-bottom:10px;display:flex;align-items:center;gap:4px;">${groupLabel}</div>
           <div class="card" style="padding:0;overflow:hidden;">
             <table class="product-table">
-              <thead><tr><th>Producto</th><th>Proveedor</th><th>Cantidad</th><th>Precio/u</th><th>Total</th></tr></thead>
+              <thead><tr><th>Producto</th><th>Proveedor</th><th class="text-right">Cantidad</th><th class="text-right">Precio/u</th><th class="text-right">Total</th></tr></thead>
               <tbody>${rows}</tbody>
               <tfoot>
                 <tr style="background:var(--beige-lt);">
-                  <td colspan="4" style="font-weight:600;padding:10px 14px;">Total ${local}</td>
-                  <td class="text-right fw-bold text-orange" style="padding:10px 14px;">€ ${lTotal.toFixed(2)}</td>
+                  <td colspan="4" style="font-weight:600;padding:10px 14px;">${footLabel}</td>
+                  <td class="text-right fw-bold text-orange" style="padding:10px 14px;">€ ${gTotal.toFixed(2)}</td>
                 </tr>
               </tfoot>
             </table>
