@@ -659,7 +659,7 @@
         <div class="form-grid form-grid-2">
           <div class="field">
             <label>Local de origen <span class="req">*</span></label>
-            <select id="local-origen" required>
+            <select id="local-origen" required onchange="filterDestino()">
               <option value="">— Seleccioná —</option>
               <option>Bar Maipi</option>
               <option>Doña Petrona</option>
@@ -670,7 +670,7 @@
           </div>
           <div class="field">
             <label>Local de destino <span class="req">*</span></label>
-            <select id="local-destino" required>
+            <select id="local-destino" required onchange="filterOrigen()">
               <option value="">— Seleccioná —</option>
               <option>Bar Maipi</option>
               <option>Doña Petrona</option>
@@ -978,6 +978,38 @@ function validatePrecio(idx) {
   return true;
 }
 
+// ── FILTER SELECTS (prevent same origin/destination) ────────────
+const LOCALES = [
+  'Bar Maipi',
+  'Doña Petrona',
+  'La Oficina de Carito y Germán',
+  'Fierro Restaurante',
+  'Holding',
+];
+
+function filterDestino() {
+  const origen  = document.getElementById('local-origen').value;
+  const selDest = document.getElementById('local-destino');
+  const current = selDest.value;
+  selDest.innerHTML = '<option value="">— Seleccioná —</option>' +
+    LOCALES.filter(l => l !== origen)
+           .map(l => `<option${l === current && l !== origen ? ' selected' : ''}>${l}</option>`)
+           .join('');
+  // Clear if current selection equals new origin
+  if (current === origen) selDest.value = '';
+}
+
+function filterOrigen() {
+  const destino = document.getElementById('local-destino').value;
+  const selOri  = document.getElementById('local-origen');
+  const current = selOri.value;
+  selOri.innerHTML = '<option value="">— Seleccioná —</option>' +
+    LOCALES.filter(l => l !== destino)
+           .map(l => `<option${l === current && l !== destino ? ' selected' : ''}>${l}</option>`)
+           .join('');
+  if (current === destino) selOri.value = '';
+}
+
 // ── ANTI-BOT LAYER ───────────────────────────────────────────────
 const MIN_HUMAN_MS  = 4000;   // mínimo tiempo humano razonable para llenar el form
 const MAX_SUBMITS   = 5;      // máximo envíos por sesión
@@ -1148,8 +1180,11 @@ async function submitForm() {
 function resetForm() {
   document.getElementById('form-wrapper').style.display = 'block';
   document.getElementById('success-screen').style.display = 'none';
-  document.getElementById('local-origen').value = '';
-  document.getElementById('local-destino').value = '';
+  // Reset both selects to full option list
+  ['local-origen','local-destino'].forEach(id => {
+    document.getElementById(id).innerHTML = '<option value="">— Seleccioná —</option>' +
+      LOCALES.map(l => `<option>${l}</option>`).join('');
+  });
   document.getElementById('nombre').value = '';
   document.getElementById('email').value = '';
   document.getElementById('products-list').innerHTML = '';
