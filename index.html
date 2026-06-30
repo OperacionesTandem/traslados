@@ -763,7 +763,7 @@
 
 <!-- ══════════════ PAGE: PANEL ══════════════ -->
 <div id="page-panel" class="page">
-  <!-- LOGIN -->
+  <!-- LOGIN — paso 1: email + contraseña -->
   <div id="panel-login">
     <div class="section-title" style="text-align:center;font-size:1.6rem;margin-bottom:4px;">Panel de Operaciones</div>
     <p class="section-sub" style="text-align:center;">Acceso restringido</p>
@@ -778,7 +778,30 @@
           <input type="password" id="login-pwd" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()" />
         </div>
         <div class="alert alert-error" id="login-error" style="margin:0;"></div>
-        <button class="login-btn" onclick="doLogin()">Ingresar</button>
+        <button class="login-btn" onclick="doLogin()" id="login-btn">Ingresar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- OTP — paso 2: código de 6 dígitos enviado por email -->
+  <div id="panel-otp" style="display:none;max-width:400px;margin:60px auto 0;padding:0 24px;">
+    <div class="section-title" style="text-align:center;font-size:1.6rem;margin-bottom:4px;">Verificación</div>
+    <p class="section-sub" style="text-align:center;" id="otp-sub">Ingresá el código que enviamos a tu email</p>
+    <div class="card">
+      <div class="form-grid" style="gap:14px;">
+        <div class="field">
+          <label>Código de 6 dígitos</label>
+          <input type="text" id="otp-code" placeholder="000000" maxlength="6" inputmode="numeric"
+            style="text-align:center;font-size:1.4rem;letter-spacing:0.3em;font-weight:600;"
+            onkeydown="if(event.key==='Enter')doVerifyOtp()"
+            oninput="this.value=this.value.replace(/[^0-9]/g,'')" />
+        </div>
+        <div class="alert alert-error" id="otp-error" style="margin:0;"></div>
+        <button class="login-btn" onclick="doVerifyOtp()" id="otp-btn">Verificar e ingresar</button>
+        <button type="button" onclick="backToLogin()"
+          style="background:none;border:none;color:var(--gray);font-size:0.8rem;cursor:pointer;text-decoration:underline;padding:4px;">
+          ← Volver
+        </button>
       </div>
     </div>
   </div>
@@ -831,11 +854,11 @@
 const API_URL = 'https://script.google.com/macros/s/AKfycbyuj2qCMFgbLIp70C3SI7kZIpNtTO1Cg87IeZEi_KFUQ4cZbznKwOONaxMsEtgiVgmp/exec';
 
 const LOCAL_EMAILS = {
-  'Bar Maipi':                    'cocina.maipi.bar@gmail.com',
-  'Doña Petrona':                 'cocina.dpetrona@gmail.com',
-  'La Oficina de Carito y Germán':'cocina.laoficina26@gmail.com',
-  'Fierro Restaurante':           'cocina@fierrovlc.com',
-  'Holding':                      'op.tandemg@gmail.com',
+  'Bar Maipi':                    'maipi@grupotandem.com',
+  'Doña Petrona':                 'petrona@grupotandem.com',
+  'La Oficina de Carito y Germán':'oficina@grupotandem.com',
+  'Fierro Restaurante':           'fierro@grupotandem.com',
+  'Holding':                      'holding@grupotandem.com',
 };
 
 // ── PAGE NAVIGATION ─────────────────────────────────────────────
@@ -1211,26 +1234,33 @@ function setLoading(on) {
   document.getElementById('submit-spinner').style.display = on ? 'inline-block' : 'none';
 }
 
-// ── PANEL AUTH ────────────────────────────────────────────────────
-let panelSession = false;
+// ── PANEL AUTH (2 pasos: password → OTP por email) ──────────────
+let panelSession  = false;
+let pendingEmail  = '';
 
 async function doLogin() {
   const email = document.getElementById('login-email').value.trim();
   const pwd   = document.getElementById('login-pwd').value;
   const errEl = document.getElementById('login-error');
+  const btn   = document.getElementById('login-btn');
   errEl.classList.remove('show');
 
   if (!email || !pwd) { errEl.textContent = 'Completá email y contraseña.'; errEl.classList.add('show'); return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Enviando código…';
 
   try {
     const res = await fetch(API_URL + '?action=login&email=' + encodeURIComponent(email) + '&pwd=' + encodeURIComponent(pwd), { redirect: 'follow' });
     const data = await res.json();
     if (data.status === 'ok') {
-      panelSession = true;
+      pendingEmail = email;
       document.getElementById('panel-login').style.display = 'none';
-      document.getElementById('panel-dashboard').style.display = 'block';
-      setDefaultDates();
-      loadReport();
+      document.getElementById('panel-otp').style.display = 'block';
+      document.getElementById('otp-sub').textContent = `Ingresá el código que enviamos a ${email}`;
+      document.getElementById('otp-code').value = '';
+      document.getElementById('otp-error').classList.remove('show');
+      document.getElementById('otp-code').focus();
     } else {
       errEl.textContent = data.message || 'Credenciales incorrectas.';
       errEl.classList.add('show');
@@ -1239,11 +1269,58 @@ async function doLogin() {
     errEl.textContent = 'No se pudo conectar con el servidor.';
     errEl.classList.add('show');
   }
+  btn.disabled = false;
+  btn.textContent = 'Ingresar';
+}
+
+async function doVerifyOtp() {
+  const code  = document.getElementById('otp-code').value.trim();
+  const errEl = document.getElementById('otp-error');
+  const btn   = document.getElementById('otp-btn');
+  errEl.classList.remove('show');
+
+  if (!code || code.length !== 6) {
+    errEl.textContent = 'Ingresá el código de 6 dígitos.';
+    errEl.classList.add('show');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Verificando…';
+
+  try {
+    const res = await fetch(API_URL + '?action=verifyOtp&email=' + encodeURIComponent(pendingEmail) + '&code=' + encodeURIComponent(code), { redirect: 'follow' });
+    const data = await res.json();
+    if (data.status === 'ok') {
+      panelSession = true;
+      document.getElementById('panel-otp').style.display = 'none';
+      document.getElementById('panel-dashboard').style.display = 'block';
+      setDefaultDates();
+      loadReport();
+    } else {
+      errEl.textContent = data.message || 'Código incorrecto.';
+      errEl.classList.add('show');
+    }
+  } catch(e) {
+    errEl.textContent = 'No se pudo conectar con el servidor.';
+    errEl.classList.add('show');
+  }
+  btn.disabled = false;
+  btn.textContent = 'Verificar e ingresar';
+}
+
+function backToLogin() {
+  document.getElementById('panel-otp').style.display = 'none';
+  document.getElementById('panel-login').style.display = 'block';
+  document.getElementById('login-pwd').value = '';
+  pendingEmail = '';
 }
 
 function doLogout() {
   panelSession = false;
+  pendingEmail = '';
   document.getElementById('panel-login').style.display = 'block';
+  document.getElementById('panel-otp').style.display = 'none';
   document.getElementById('panel-dashboard').style.display = 'none';
   document.getElementById('login-pwd').value = '';
 }
