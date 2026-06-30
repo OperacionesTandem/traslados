@@ -763,22 +763,18 @@
 
 <!-- ══════════════ PAGE: PANEL ══════════════ -->
 <div id="page-panel" class="page">
-  <!-- LOGIN — paso 1: email + contraseña -->
+  <!-- LOGIN — paso 1: email autorizado → envía OTP -->
   <div id="panel-login">
     <div class="section-title" style="text-align:center;font-size:1.6rem;margin-bottom:4px;">Panel de Operaciones</div>
-    <p class="section-sub" style="text-align:center;">Acceso restringido</p>
+    <p class="section-sub" style="text-align:center;">Acceso restringido — ingresá tu email para recibir un código</p>
     <div class="card">
       <div class="form-grid" style="gap:14px;">
         <div class="field">
           <label>Email</label>
-          <input type="email" id="login-email" placeholder="operaciones@tandem.com" />
-        </div>
-        <div class="field">
-          <label>Contraseña</label>
-          <input type="password" id="login-pwd" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()" />
+          <input type="email" id="login-email" placeholder="operaciones@tandem.com" onkeydown="if(event.key==='Enter')doLogin()" />
         </div>
         <div class="alert alert-error" id="login-error" style="margin:0;"></div>
-        <button class="login-btn" onclick="doLogin()" id="login-btn">Ingresar</button>
+        <button class="login-btn" onclick="doLogin()" id="login-btn">Enviar código</button>
       </div>
     </div>
   </div>
@@ -1234,24 +1230,23 @@ function setLoading(on) {
   document.getElementById('submit-spinner').style.display = on ? 'inline-block' : 'none';
 }
 
-// ── PANEL AUTH (2 pasos: password → OTP por email) ──────────────
+// ── PANEL AUTH (1 paso: email autorizado → OTP por email) ────────
 let panelSession  = false;
 let pendingEmail  = '';
 
 async function doLogin() {
   const email = document.getElementById('login-email').value.trim();
-  const pwd   = document.getElementById('login-pwd').value;
   const errEl = document.getElementById('login-error');
   const btn   = document.getElementById('login-btn');
   errEl.classList.remove('show');
 
-  if (!email || !pwd) { errEl.textContent = 'Completá email y contraseña.'; errEl.classList.add('show'); return; }
+  if (!email) { errEl.textContent = 'Ingresá tu email.'; errEl.classList.add('show'); return; }
 
   btn.disabled = true;
   btn.textContent = 'Enviando código…';
 
   try {
-    const res = await fetch(API_URL + '?action=login&email=' + encodeURIComponent(email) + '&pwd=' + encodeURIComponent(pwd), { redirect: 'follow' });
+    const res = await fetch(API_URL + '?action=login&email=' + encodeURIComponent(email), { redirect: 'follow' });
     const data = await res.json();
     if (data.status === 'ok') {
       pendingEmail = email;
@@ -1262,7 +1257,7 @@ async function doLogin() {
       document.getElementById('otp-error').classList.remove('show');
       document.getElementById('otp-code').focus();
     } else {
-      errEl.textContent = data.message || 'Credenciales incorrectas.';
+      errEl.textContent = data.message || 'Email no autorizado.';
       errEl.classList.add('show');
     }
   } catch(e) {
@@ -1270,7 +1265,7 @@ async function doLogin() {
     errEl.classList.add('show');
   }
   btn.disabled = false;
-  btn.textContent = 'Ingresar';
+  btn.textContent = 'Enviar código';
 }
 
 async function doVerifyOtp() {
@@ -1312,7 +1307,6 @@ async function doVerifyOtp() {
 function backToLogin() {
   document.getElementById('panel-otp').style.display = 'none';
   document.getElementById('panel-login').style.display = 'block';
-  document.getElementById('login-pwd').value = '';
   pendingEmail = '';
 }
 
@@ -1322,7 +1316,6 @@ function doLogout() {
   document.getElementById('panel-login').style.display = 'block';
   document.getElementById('panel-otp').style.display = 'none';
   document.getElementById('panel-dashboard').style.display = 'none';
-  document.getElementById('login-pwd').value = '';
 }
 
 function setDefaultDates() {
